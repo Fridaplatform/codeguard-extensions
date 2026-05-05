@@ -8,10 +8,13 @@ if [ ! -f "rules-response.json" ]; then
   exit 1
 fi
 
-LANGUAGES=$(jq -r '.result.data | keys[]' rules-response.json)
+RULES_PATH='(.data.data // .data // .result.data)'
+
+LANGUAGES=$(jq -r "$RULES_PATH | keys[]" rules-response.json)
 
 if [ -z "$LANGUAGES" ]; then
   echo "No languages found in rules response"
+  cat rules-response.json
   exit 1
 fi
 
@@ -38,7 +41,7 @@ do
 
   echo "Profile key for $LANG: $PROFILE_KEY"
 
-  RULE_COUNT=$(jq -r ".result.data[\"$LANG\"] // [] | length" rules-response.json)
+  RULE_COUNT=$(jq -r "$RULES_PATH[\"$LANG\"] // [] | length" rules-response.json)
 
   if [ "$RULE_COUNT" -eq 0 ]; then
     echo "No rules found for language $LANG"
@@ -47,7 +50,13 @@ do
 
   for (( j=0; j<RULE_COUNT; j++ ))
   do
-    RULE=$(jq -r ".result.data[\"$LANG\"][$j]")
+    RULE=$(jq -r "$RULES_PATH[\"$LANG\"][$j]" rules-response.json)
+
+    if [ -z "$RULE" ] || [ "$RULE" = "null" ]; then
+      echo "Invalid rule found for $LANG at index $j"
+      exit 1
+    fi
+
     echo "Activating rule for $LANG: $RULE"
 
     curl -s -u "$SONAR_TOKEN:" -X POST \
