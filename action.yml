@@ -1,0 +1,72 @@
+name: 'CodeGuard Sonar Action'
+description: 'Run ephemeral SonarQube analysis with dynamic CodeGuard rules'
+
+inputs:
+  teamId:
+    description: 'CodeGuard team id'
+    required: true
+
+  projectKey:
+    description: 'SonarQube project key'
+    required: true
+
+  rulesApiUrl:
+    description: 'CodeGuard rules API URL'
+    required: false
+    default: 'https://apis.codeguard.fridaplatform.online/Teams-getRules'
+
+  sources:
+    description: 'Sonar sources path inside scanner container'
+    required: false
+    default: '/usr/src'
+
+  exclusions:
+    description: 'Sonar exclusions'
+    required: false
+    default: '**/node_modules/**,**/dist/**,**/build/**,**/__pycache__/**'
+
+  enforceQualityGate:
+    description: 'Fail workflow if quality gate fails'
+    required: false
+    default: 'true'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Start SonarQube
+      run: bash ${{ github.action_path }}/scripts/start-sonar.sh
+      shell: bash
+
+    - name: Generate Sonar token
+      run: bash ${{ github.action_path }}/scripts/generate-token.sh
+      shell: bash
+
+    - name: Fetch CodeGuard rules
+      run: bash ${{ github.action_path }}/scripts/fetch-rules.sh "${{ inputs.teamId }}" "${{ inputs.rulesApiUrl }}"
+      shell: bash
+
+    - name: Configure SonarQube profiles
+      run: bash ${{ github.action_path }}/scripts/configure-profiles.sh
+      shell: bash
+
+    - name: Run Sonar Scanner
+      run: bash ${{ github.action_path }}/scripts/run-scanner.sh "${{ inputs.projectKey }}" "${{ inputs.sources }}" "${{ inputs.exclusions }}"
+      shell: bash
+
+    - name: Extract SonarQube Issues
+      run: bash ${{ github.action_path }}/scripts/extract-issues.sh "${{ inputs.projectKey }}"
+      shell: bash
+
+    - name: Generate Issue Summary
+      run: bash ${{ github.action_path }}/scripts/generate-summary.sh
+      shell: bash
+
+    - name: Check Quality Gate
+      if: ${{ inputs.enforceQualityGate == 'true' }}
+      run: bash ${{ github.action_path }}/scripts/quality-gate.sh "${{ inputs.projectKey }}"
+      shell: bash
+
+    - name: Cleanup SonarQube
+      if: always()
+      run: bash ${{ github.action_path }}/scripts/cleanup.sh
+      shell: bash
