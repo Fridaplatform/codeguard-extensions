@@ -14,14 +14,14 @@ if [ -z "$RULES_API_URL" ]; then
   exit 1
 fi
 
-echo "Fetching CodeGuard rules for team: $TEAM_ID"
+echo "Fetching CodeGuard Sonar rules for team: $TEAM_ID"
 
 RESPONSE=$(curl -s -X POST "$RULES_API_URL" \
   -H "Content-Type: application/json" \
+  -H "User-Agent: github-action" \
   -d "{
-    \"data\": {
-      \"team_id\": \"$TEAM_ID\"
-    }
+    \"installationId\": \"128498765\",
+    \"teamId\": \"$TEAM_ID\"
   }")
 
 echo "$RESPONSE" > rules-response.json
@@ -29,9 +29,9 @@ echo "$RESPONSE" > rules-response.json
 echo "Rules response:"
 cat rules-response.json
 
-ERROR_FLAG=$(jq -r '.result.error' rules-response.json)
+ERROR_FLAG=$(jq -r '.error // false' rules-response.json)
 
-if [ "$ERROR_FLAG" != "false" ]; then
+if [ "$ERROR_FLAG" != "false" ] && [ "$ERROR_FLAG" != "null" ]; then
   echo "Failed to get rules from CodeGuard API"
   jq . rules-response.json || cat rules-response.json
   exit 1
