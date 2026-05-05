@@ -61,6 +61,12 @@ runs:
       run: bash ${{ github.action_path }}/scripts/generate-summary.sh
       shell: bash
 
+    - name: Upload Sonar Results
+      uses: actions/upload-artifact@v4
+      with:
+        name: sonar-analysis-results
+        path: sonar-results/
+
     - name: Check Quality Gate
       if: ${{ inputs.enforceQualityGate == 'true' }}
       run: bash ${{ github.action_path }}/scripts/quality-gate.sh "${{ inputs.projectKey }}"
