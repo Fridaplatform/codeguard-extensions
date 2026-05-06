@@ -1,12 +1,13 @@
-# CodeGuard Sonar Action
+# CodeGuard Extensions
 
-GitHub Action to run SonarQube with dynamic CodeGuard rules.
+Reusable GitHub Actions for CodeGuard integrations and automation workflows.
 
-## Usage
+---
 
-```yaml
-steps:
-  - uses: CodeGuard/codeguard-sonar-action@main
-    with:
-      teamId: 'softtek'
-      projectKey: 'frida'
+# Available Actions
+
+| Action | Description | Documentation |
+|---|---|---|
+| `codeguard-sonarqube` | Ephemeral SonarQube analysis with dynamic CodeGuard rules | [View Documentation](./actions/codeguard-sonarqube/README.md) |
+
+---
