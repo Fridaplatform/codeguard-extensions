@@ -6,6 +6,10 @@ inputs:
     description: 'CodeGuard team id'
     required: true
 
+  installationId:
+    description: 'CodeGuard installation document id'
+    required: true
+
   projectKey:
     description: 'SonarQube project key'
     required: true
@@ -42,7 +46,7 @@ runs:
       shell: bash
 
     - name: Fetch CodeGuard rules
-      run: bash ${{ github.action_path }}/scripts/fetch-rules.sh "${{ inputs.teamId }}" "${{ inputs.rulesApiUrl }}"
+      run: bash ${{ github.action_path }}/scripts/fetch-rules.sh "${{ inputs.teamId }}" "${{ inputs.installationId }}" "${{ inputs.rulesApiUrl }}"
       shell: bash
 
     - name: Configure SonarQube profiles
