@@ -17,7 +17,7 @@ inputs:
   rulesApiUrl:
     description: 'CodeGuard rules API URL'
     required: false
-    default: 'https://apis.codeguard-stg.fridaplatform.online/Teams-getSonarRules'
+    default: 'https://apis.codeguard.fridaplatform.online/Teams-getSonarRules'
 
   sources:
     description: 'Sonar sources path inside scanner container'
