@@ -47,24 +47,37 @@ for i in {1..60}; do
   sleep 5
 done
 
-mkdir -p sonar-results
-ISSUES_JSON="[]"
+mkdir -p sonar-results/issues-pages
 
 PAGE=1
+
 while true; do
-  RESP=$(curl -s -u "$SONAR_TOKEN:" \
-    "http://localhost:9000/api/issues/search?projectKeys=$PROJECT_KEY&resolved=false&p=$PAGE&ps=500")
+  echo "Fetching issues page $PAGE..."
 
-  COUNT=$(echo "$RESP" | jq '.issues | length')
-  [ "$COUNT" -eq 0 ] && break
+  RESP_FILE="sonar-results/issues-pages/page-$PAGE.json"
+  ISSUES_FILE="sonar-results/issues-pages/issues-$PAGE.json"
 
-  ISSUES_JSON=$(jq --argjson new "$(echo "$RESP" | jq '.issues')" \
-    '. + $new' <<< "$ISSUES_JSON")
+  curl -s -u "$SONAR_TOKEN:" \
+    "http://localhost:9000/api/issues/search?projectKeys=$PROJECT_KEY&resolved=false&p=$PAGE&ps=500" \
+    -o "$RESP_FILE"
+
+  COUNT=$(jq '.issues | length' "$RESP_FILE")
+
+  if [ "$COUNT" -eq 0 ]; then
+    rm -f "$RESP_FILE"
+    break
+  fi
+
+  jq '.issues' "$RESP_FILE" > "$ISSUES_FILE"
 
   PAGE=$((PAGE+1))
 done
 
-echo "$ISSUES_JSON" > sonar-results/issues.json
+if ls sonar-results/issues-pages/issues-*.json >/dev/null 2>&1; then
+  jq -s 'add' sonar-results/issues-pages/issues-*.json > sonar-results/issues.json
+else
+  echo "[]" > sonar-results/issues.json
+fi
 
 echo "Extracted issues:"
 jq 'length' sonar-results/issues.json
