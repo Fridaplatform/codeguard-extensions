@@ -47,15 +47,18 @@ for i in {1..60}; do
   sleep 5
 done
 
-mkdir -p sonar-results/issues-pages
+mkdir -p sonar-results
+
+TMP_ISSUES_DIR="$(mktemp -d)"
+trap 'rm -rf "$TMP_ISSUES_DIR"' EXIT
 
 PAGE=1
 
 while true; do
   echo "Fetching issues page $PAGE..."
 
-  RESP_FILE="sonar-results/issues-pages/page-$PAGE.json"
-  ISSUES_FILE="sonar-results/issues-pages/issues-$PAGE.json"
+  RESP_FILE="$TMP_ISSUES_DIR/page-$PAGE.json"
+  ISSUES_FILE="$TMP_ISSUES_DIR/issues-$PAGE.json"
 
   curl -s -u "$SONAR_TOKEN:" \
     "http://localhost:9000/api/issues/search?projectKeys=$PROJECT_KEY&resolved=false&p=$PAGE&ps=500" \
@@ -70,11 +73,11 @@ while true; do
 
   jq '.issues' "$RESP_FILE" > "$ISSUES_FILE"
 
-  PAGE=$((PAGE+1))
+  PAGE=$((PAGE + 1))
 done
 
-if ls sonar-results/issues-pages/issues-*.json >/dev/null 2>&1; then
-  jq -s 'add' sonar-results/issues-pages/issues-*.json > sonar-results/issues.json
+if ls "$TMP_ISSUES_DIR"/issues-*.json >/dev/null 2>&1; then
+  jq -s 'add' "$TMP_ISSUES_DIR"/issues-*.json > sonar-results/issues.json
 else
   echo "[]" > sonar-results/issues.json
 fi
