@@ -26,8 +26,28 @@ jq -r '.[] |
 ' sonar-results/summary.json >> sonar-results/summary.md
 
 echo "" >> sonar-results/summary.md
-echo "Top issues:" >> sonar-results/summary.md
+echo "## Top issues" >> sonar-results/summary.md
 echo "" >> sonar-results/summary.md
+
+ISSUES_COUNT=$(jq 'length' sonar-results/issues.json)
+
+if [ "$ISSUES_COUNT" -eq 0 ]; then
+  echo "No issues found." >> sonar-results/summary.md
+else
+  jq -r '
+    sort_by(
+      if .severity == "BLOCKER" then 0
+      elif .severity == "CRITICAL" then 1
+      elif .severity == "MAJOR" then 2
+      elif .severity == "MINOR" then 3
+      else 4
+      end
+    )
+    | .[0:10]
+    | to_entries[]
+    | "\(.key + 1). **\(.value.severity)** \(.value.type) - \(.value.message)\n   - File: `\(.value.component)`\n   - Rule: `\(.value.rule)`\n"
+  ' sonar-results/issues.json >> sonar-results/summary.md
+fi
 
 echo "Summary generated"
 cat sonar-results/summary.md
