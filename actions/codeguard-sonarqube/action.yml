@@ -59,11 +59,12 @@ runs:
       shell: bash
 
     - name: Run Sonar Scanner
-      run: bash ${{ github.action_path }}/scripts/run-scanner.sh \
-        "${{ inputs.projectKey }}" \
-        "${{ inputs.sources }}" \
-        "${{ inputs.exclusions }}" \
-        "${{ inputs.newCodeReferenceBranch }}"
+      run: |
+        bash "${{ github.action_path }}/scripts/run-scanner.sh" \
+          "${{ inputs.projectKey }}" \
+          "${{ inputs.sources }}" \
+          "${{ inputs.exclusions }}" \
+          "${{ inputs.newCodeReferenceBranch }}"
       shell: bash
 
     - name: Extract SonarQube Issues
