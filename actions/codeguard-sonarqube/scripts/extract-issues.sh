@@ -61,7 +61,7 @@ while true; do
   ISSUES_FILE="$TMP_ISSUES_DIR/issues-$PAGE.json"
 
   curl -s -u "$SONAR_TOKEN:" \
-    "http://localhost:9000/api/issues/search?projectKeys=$PROJECT_KEY&resolved=false&inNewCodePeriod=true&p=$PAGE&ps=500" \
+    "http://localhost:9000/api/issues/search?projectKeys=$PROJECT_KEY&resolved=false&p=$PAGE&ps=500" \
     -o "$RESP_FILE"
 
   COUNT=$(jq '.issues | length' "$RESP_FILE")
