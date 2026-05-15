@@ -4,6 +4,7 @@ set -e
 PROJECT_KEY="$1"
 SOURCES="$2"
 EXCLUSIONS="$3"
+NEW_CODE_REFERENCE_BRANCH="$4"
 
 if [ -z "$PROJECT_KEY" ]; then
   echo "projectKey is required"
@@ -18,10 +19,15 @@ if [ -z "$EXCLUSIONS" ]; then
   EXCLUSIONS="**/node_modules/**,**/dist/**,**/build/**,**/__pycache__/**"
 fi
 
+if [ -z "$NEW_CODE_REFERENCE_BRANCH" ]; then
+  NEW_CODE_REFERENCE_BRANCH="main"
+fi
+
 echo "Running Sonar Scanner..."
 echo "Project key: $PROJECT_KEY"
 echo "Sources: $SOURCES"
 echo "Exclusions: $EXCLUSIONS"
+echo "New Code reference branch: $NEW_CODE_REFERENCE_BRANCH"
 
 mkdir -p "$GITHUB_WORKSPACE/.scanner-meta"
 chmod -R 777 "$GITHUB_WORKSPACE/.scanner-meta"
@@ -41,6 +47,7 @@ docker run --rm \
   -Dsonar.exclusions="$EXCLUSIONS" \
   -Dsonar.host.url=http://localhost:9000 \
   -Dsonar.login="$SONAR_TOKEN" \
+  -Dsonar.newCode.referenceBranch="$NEW_CODE_REFERENCE_BRANCH" \
   -Dsonar.verbose=true
 
 echo "Sonar Scanner finished"

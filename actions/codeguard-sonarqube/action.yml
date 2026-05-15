@@ -34,6 +34,11 @@ inputs:
     required: false
     default: 'true'
 
+  newCodeReferenceBranch:
+    description: "Branch base para calcular New Code en SonarQube"
+    required: false
+    default: "main" 
+
 runs:
   using: 'composite'
   steps:
@@ -54,7 +59,11 @@ runs:
       shell: bash
 
     - name: Run Sonar Scanner
-      run: bash ${{ github.action_path }}/scripts/run-scanner.sh "${{ inputs.projectKey }}" "${{ inputs.sources }}" "${{ inputs.exclusions }}"
+      run: bash ${{ github.action_path }}/scripts/run-scanner.sh \
+        "${{ inputs.projectKey }}" \
+        "${{ inputs.sources }}" \
+        "${{ inputs.exclusions }}" \
+        "${{ inputs.newCodeReferenceBranch }}"
       shell: bash
 
     - name: Extract SonarQube Issues
