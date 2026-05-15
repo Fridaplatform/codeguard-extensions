@@ -11,7 +11,7 @@ if [ -z "$TEAM_ID" ]; then
 fi
 
 if [ -z "$INSTALLATION_ID" ]; then
-  echo "installationId is required"
+  echo "Resolved installationId is required"
   exit 1
 fi
 
@@ -21,7 +21,7 @@ if [ -z "$RULES_API_URL" ]; then
 fi
 
 echo "Fetching CodeGuard Sonar rules for team: $TEAM_ID"
-echo "Using installation: $INSTALLATION_ID"
+echo "Using resolved installation: $INSTALLATION_ID"
 
 RESPONSE=$(curl -s -X POST "$RULES_API_URL" \
   -H "Content-Type: application/json" \
