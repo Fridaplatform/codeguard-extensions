@@ -10,29 +10,32 @@ fi
 echo "Filtering issues by PR diff..."
 echo "Base branch: $BASE_BRANCH"
 
-git fetch origin "$BASE_BRANCH"
-
-CHANGED_FILES=$(git diff --name-only "origin/$BASE_BRANCH"...HEAD)
-
-echo "Changed files:"
-echo "$CHANGED_FILES"
-
 if [ ! -f "sonar-results/issues.json" ]; then
   echo "sonar-results/issues.json not found"
   exit 1
 fi
 
-TMP_FILE=$(mktemp)
+git fetch origin "$BASE_BRANCH"
 
-jq --argfiles changed <(
-  printf '%s\n' "$CHANGED_FILES" | jq -R . | jq -s .
-) '
+CHANGED_FILES_FILE="$(mktemp)"
+TMP_FILE="$(mktemp)"
+
+git diff --name-only "origin/$BASE_BRANCH"...HEAD > "$CHANGED_FILES_FILE"
+
+echo "Changed files:"
+cat "$CHANGED_FILES_FILE"
+
+jq -R -s '
+  split("\n")
+  | map(select(length > 0))
+' "$CHANGED_FILES_FILE" > "$CHANGED_FILES_FILE.json"
+
+jq --slurpfile changed "$CHANGED_FILES_FILE.json" '
 [
   .[]
   | select(
-      .component as $component
-      | ($changed[0][] | split("/") | last) as $file
-      | ($component | endswith($file))
+      (.component | split(":") | last) as $issueFile
+      | ($changed[0] | index($issueFile))
     )
 ]
 ' sonar-results/issues.json > "$TMP_FILE"
