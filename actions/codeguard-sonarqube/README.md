@@ -114,6 +114,7 @@ sources: 'services/api'
     rulesApiUrl: 'https://apis.codeguard-stg.fridaplatform.online/Teams-getSonarRules'
     sources: 'apps/web,packages/shared'
     exclusions: '**/node_modules/**,**/dist/**,**/build/**'
+    newCodeReferenceBranch: ${{ github.base_ref || 'main' }}
 ```
 
 ---
@@ -133,6 +134,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Run CodeGuard SonarQube Action
         uses: Fridaplatform/codeguard-extensions/actions/codeguard-sonarqube@master
@@ -143,6 +146,7 @@ jobs:
           rulesApiUrl: 'https://apis.codeguard-stg.fridaplatform.online/Teams-getSonarRules'
           sources: 'apps/web,packages/shared'
           exclusions: '**/node_modules/**,**/dist/**,**/build/**'
+          newCodeReferenceBranch: ${{ github.base_ref || 'main' }}
           
 ```
 ---
