@@ -1,10 +1,14 @@
 #!/bin/bash
 set -e
 
-BASE_BRANCH="$1"
-
 if [ -z "$BASE_BRANCH" ]; then
-  BASE_BRANCH="main"
+  if [ -n "$GITHUB_BASE_REF" ]; then
+    BASE_BRANCH="$GITHUB_BASE_REF"
+  elif git ls-remote --exit-code --heads origin master >/dev/null 2>&1; then
+    BASE_BRANCH="master"
+  else
+    BASE_BRANCH="main"
+  fi
 fi
 
 echo "Filtering issues by PR diff..."

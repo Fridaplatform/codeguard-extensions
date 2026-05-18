@@ -72,7 +72,7 @@ runs:
       shell: bash
       
     - name: Filter Issues By PR Diff
-      run: bash ${{ github.action_path }}/scripts/filter-new-code-issues.sh "${{ inputs.newCodeReferenceBranch }}"
+      run: bash ${{ github.action_path }}/scripts/filter-new-code-issues.sh
       shell: bash
 
     - name: Generate Issue Summary
