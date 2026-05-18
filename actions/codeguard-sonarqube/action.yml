@@ -70,6 +70,10 @@ runs:
     - name: Extract SonarQube Issues
       run: bash ${{ github.action_path }}/scripts/extract-issues.sh "${{ inputs.projectKey }}"
       shell: bash
+      
+    - name: Filter Issues By PR Diff
+      run: bash ${{ github.action_path }}/scripts/filter-new-code-issues.sh "${{ inputs.newCodeReferenceBranch }}"
+      shell: bash
 
     - name: Generate Issue Summary
       run: bash ${{ github.action_path }}/scripts/generate-summary.sh
