@@ -19,6 +19,7 @@ echo "Resolving GitHub installation for owner: $OWNER"
 
 RESPONSE=$(curl -s -X POST "$RESOLVE_INSTALLATION_API_URL" \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $GITHUB_TOKEN" \
   -d "{
     \"owner\": \"$OWNER\"
   }")
