@@ -19,8 +19,13 @@ if [ -z "$EXCLUSIONS" ]; then
   EXCLUSIONS="**/node_modules/**,**/dist/**,**/build/**,**/__pycache__/**"
 fi
 
+# Auto-detect PR base branch if not provided
 if [ -z "$NEW_CODE_REFERENCE_BRANCH" ]; then
-  NEW_CODE_REFERENCE_BRANCH="main"
+  if [ -n "$GITHUB_BASE_REF" ]; then
+    NEW_CODE_REFERENCE_BRANCH="$GITHUB_BASE_REF"
+  else
+    NEW_CODE_REFERENCE_BRANCH="main"
+  fi
 fi
 
 echo "Running Sonar Scanner..."
