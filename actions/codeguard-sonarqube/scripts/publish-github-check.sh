@@ -87,8 +87,6 @@ if [ "$ISSUE_COUNT" -eq 0 ]; then
   exit 0
 fi
 
-echo "Annotations payload:"
-jq . "$ANNOTATIONS_FILE"
 ANNOTATIONS_FILE="$(mktemp)"
 trap 'rm -f "$ANNOTATIONS_FILE"' EXIT
 
@@ -110,6 +108,9 @@ jq '
   })
   | map(select(.path != null and .path != ""))
 ' "$ISSUES_FILE" > "$ANNOTATIONS_FILE"
+
+echo "Annotations payload:"
+jq . "$ANNOTATIONS_FILE"
 
 TOTAL_ANNOTATIONS=$(jq 'length' "$ANNOTATIONS_FILE")
 
