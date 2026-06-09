@@ -6,6 +6,7 @@ SUMMARY_FILE="${2:-sonar-results/summary.md}"
 
 CHECK_NAME="${CHECK_NAME:-CodeGuard SonarQube Analysis}"
 API_URL="https://api.github.com/repos/$GITHUB_REPOSITORY/check-runs"
+DETAILS_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
 
 if [ -z "$GITHUB_TOKEN" ]; then
   echo "GITHUB_TOKEN is required"
@@ -52,11 +53,13 @@ CHECK_PAYLOAD=$(jq -n \
   --arg conclusion "$CONCLUSION" \
   --arg title "$TITLE" \
   --arg summary "$SUMMARY" \
+  --arg details_url "$DETAILS_URL" \
   '{
     name: $name,
     head_sha: $head_sha,
     status: "completed",
     conclusion: $conclusion,
+    details_url: $details_url,
     output: {
       title: $title,
       summary: $summary
@@ -84,6 +87,8 @@ if [ "$ISSUE_COUNT" -eq 0 ]; then
   exit 0
 fi
 
+echo "Annotations payload:"
+jq . "$ANNOTATIONS_FILE"
 ANNOTATIONS_FILE="$(mktemp)"
 trap 'rm -f "$ANNOTATIONS_FILE"' EXIT
 
@@ -93,6 +98,8 @@ jq '
     path: (.component | split(":") | .[1]),
     start_line: (.line | tonumber),
     end_line: (.line | tonumber),
+    start_column: 1,
+    end_column: 1,
     annotation_level:
       (if .severity == "BLOCKER" or .severity == "CRITICAL" or .severity == "MAJOR"
        then "failure"
