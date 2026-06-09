@@ -47,46 +47,6 @@ fi
 echo "Creating GitHub Check Run..."
 echo "Issues found: $ISSUE_COUNT"
 
-CHECK_PAYLOAD=$(jq -n \
-  --arg name "$CHECK_NAME" \
-  --arg head_sha "$GITHUB_SHA" \
-  --arg conclusion "$CONCLUSION" \
-  --arg title "$TITLE" \
-  --arg summary "$SUMMARY" \
-  --arg details_url "$DETAILS_URL" \
-  '{
-    name: $name,
-    head_sha: $head_sha,
-    status: "completed",
-    conclusion: $conclusion,
-    details_url: $details_url,
-    output: {
-      title: $title,
-      summary: $summary
-    }
-  }')
-
-CHECK_RESPONSE=$(curl -sSf -X POST "$API_URL" \
-  -H "Authorization: Bearer $GITHUB_TOKEN" \
-  -H "Accept: application/vnd.github+json" \
-  -H "X-GitHub-Api-Version: 2022-11-28" \
-  -d "$CHECK_PAYLOAD")
-
-CHECK_RUN_ID=$(echo "$CHECK_RESPONSE" | jq -r '.id // empty')
-
-if [ -z "$CHECK_RUN_ID" ]; then
-  echo "Could not create check run"
-  echo "$CHECK_RESPONSE" | jq .
-  exit 1
-fi
-
-echo "Created Check Run ID: $CHECK_RUN_ID"
-
-if [ "$ISSUE_COUNT" -eq 0 ]; then
-  echo "No annotations to publish."
-  exit 0
-fi
-
 ANNOTATIONS_FILE="$(mktemp)"
 trap 'rm -f "$ANNOTATIONS_FILE"' EXIT
 
@@ -112,16 +72,55 @@ jq '
 echo "Annotations payload:"
 jq . "$ANNOTATIONS_FILE"
 
-TOTAL_ANNOTATIONS=$(jq 'length' "$ANNOTATIONS_FILE")
+FIRST_ANNOTATIONS=$(jq '.[0:50]' "$ANNOTATIONS_FILE")
 
+CHECK_PAYLOAD=$(jq -n \
+  --arg name "$CHECK_NAME" \
+  --arg head_sha "$GITHUB_SHA" \
+  --arg conclusion "$CONCLUSION" \
+  --arg title "$TITLE" \
+  --arg summary "$SUMMARY" \
+  --arg details_url "$DETAILS_URL" \
+  --argjson annotations "$FIRST_ANNOTATIONS" \
+  '{
+    name: $name,
+    head_sha: $head_sha,
+    status: "completed",
+    conclusion: $conclusion,
+    details_url: $details_url,
+    output: {
+      title: $title,
+      summary: $summary,
+      annotations: $annotations
+    }
+  }')
+
+CHECK_RESPONSE=$(curl -sSf -X POST "$API_URL" \
+  -H "Authorization: Bearer $GITHUB_TOKEN" \
+  -H "Accept: application/vnd.github+json" \
+  -H "X-GitHub-Api-Version: 2022-11-28" \
+  -d "$CHECK_PAYLOAD")
+
+CHECK_RUN_ID=$(echo "$CHECK_RESPONSE" | jq -r '.id // empty')
+
+if [ -z "$CHECK_RUN_ID" ]; then
+  echo "Could not create check run"
+  echo "$CHECK_RESPONSE" | jq .
+  exit 1
+fi
+
+echo "Created Check Run ID: $CHECK_RUN_ID"
+
+TOTAL_ANNOTATIONS=$(jq 'length' "$ANNOTATIONS_FILE")
 echo "Publishing annotations: $TOTAL_ANNOTATIONS"
 
-if [ "$TOTAL_ANNOTATIONS" -eq 0 ]; then
-  echo "No valid annotations to publish."
+if [ "$TOTAL_ANNOTATIONS" -le 50 ]; then
+  echo "All annotations were published in the initial check run."
+  echo "GitHub Check published successfully."
   exit 0
 fi
 
-START=0
+START=50
 BATCH_SIZE=50
 
 while [ "$START" -lt "$TOTAL_ANNOTATIONS" ]; do
