@@ -6,7 +6,6 @@ SUMMARY_FILE="${2:-sonar-results/summary.md}"
 
 CHECK_NAME="${CHECK_NAME:-CodeGuard SonarQube Analysis}"
 API_URL="https://api.github.com/repos/$GITHUB_REPOSITORY/check-runs"
-DETAILS_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
 
 if [ -z "$GITHUB_TOKEN" ]; then
   echo "GITHUB_TOKEN is required"
@@ -83,17 +82,16 @@ CHECK_PAYLOAD=$(jq -n \
   --arg details_url "$DETAILS_URL" \
   --argjson annotations "$FIRST_ANNOTATIONS" \
   '{
-    name: $name,
-    head_sha: $head_sha,
-    status: "completed",
-    conclusion: $conclusion,
-    details_url: $details_url,
-    output: {
-      title: $title,
-      summary: $summary,
-      annotations: $annotations
-    }
-  }')
+  name: $name,
+  head_sha: $head_sha,
+  status: "completed",
+  conclusion: $conclusion,
+  output: {
+    title: $title,
+    summary: $summary,
+    annotations: $annotations
+  }
+}'
 
 CHECK_RESPONSE=$(curl -sSf -X POST "$API_URL" \
   -H "Authorization: Bearer $GITHUB_TOKEN" \
