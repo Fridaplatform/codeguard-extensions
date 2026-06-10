@@ -79,19 +79,18 @@ CHECK_PAYLOAD=$(jq -n \
   --arg conclusion "$CONCLUSION" \
   --arg title "$TITLE" \
   --arg summary "$SUMMARY" \
-  --arg details_url "$DETAILS_URL" \
   --argjson annotations "$FIRST_ANNOTATIONS" \
   '{
-  name: $name,
-  head_sha: $head_sha,
-  status: "completed",
-  conclusion: $conclusion,
-  output: {
-    title: $title,
-    summary: $summary,
-    annotations: $annotations
-  }
-}'
+    name: $name,
+    head_sha: $head_sha,
+    status: "completed",
+    conclusion: $conclusion,
+    output: {
+      title: $title,
+      summary: $summary,
+      annotations: $annotations
+    }
+  }')
 
 CHECK_RESPONSE=$(curl -sSf -X POST "$API_URL" \
   -H "Authorization: Bearer $GITHUB_TOKEN" \
