@@ -100,6 +100,9 @@ CHECK_RESPONSE=$(curl -sSf -X POST "$API_URL" \
 
 echo "Check response:"
 echo "$CHECK_RESPONSE" | jq .
+echo "Publishing check for repository: $GITHUB_REPOSITORY"
+echo "Publishing check for sha: $GITHUB_SHA"
+echo "PR number: ${PR_NUMBER:-not available}"
 
 CHECK_RUN_ID=$(echo "$CHECK_RESPONSE" | jq -r '.id // empty')
 
