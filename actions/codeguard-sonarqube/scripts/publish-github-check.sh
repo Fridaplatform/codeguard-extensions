@@ -17,8 +17,8 @@ if [ -z "$GITHUB_REPOSITORY" ]; then
   exit 1
 fi
 
-if [ -z "$GITHUB_SHA" ]; then
-  echo "GITHUB_SHA is required"
+if [ -z "$CODEGUARD_HEAD_SHA" ]; then
+  echo "CODEGUARD_HEAD_SHA is required"
   exit 1
 fi
 
@@ -75,7 +75,7 @@ FIRST_ANNOTATIONS=$(jq '.[0:50]' "$ANNOTATIONS_FILE")
 
 CHECK_PAYLOAD=$(jq -n \
   --arg name "$CHECK_NAME" \
-  --arg head_sha "$GITHUB_SHA" \
+  --arg head_sha "$CODEGUARD_HEAD_SHA" \
   --arg conclusion "$CONCLUSION" \
   --arg title "$TITLE" \
   --arg summary "$SUMMARY" \
@@ -101,7 +101,7 @@ CHECK_RESPONSE=$(curl -sSf -X POST "$API_URL" \
 echo "Check response:"
 echo "$CHECK_RESPONSE" | jq .
 echo "Publishing check for repository: $GITHUB_REPOSITORY"
-echo "Publishing check for sha: $GITHUB_SHA"
+echo "Publishing check for sha: $CODEGUARD_HEAD_SHA"
 echo "PR number: ${PR_NUMBER:-not available}"
 
 CHECK_RUN_ID=$(echo "$CHECK_RESPONSE" | jq -r '.id // empty')

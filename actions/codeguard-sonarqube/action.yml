@@ -84,8 +84,7 @@ runs:
       env:
         GITHUB_TOKEN: ${{ github.token }}
         GITHUB_REPOSITORY: ${{ github.repository }}
-        GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
-        PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        CODEGUARD_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         PR_NUMBER: ${{ github.event.pull_request.number }}
       run: |
         echo "github.sha=${{ github.sha }}"
