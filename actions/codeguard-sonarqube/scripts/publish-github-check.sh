@@ -98,6 +98,9 @@ CHECK_RESPONSE=$(curl -sSf -X POST "$API_URL" \
   -H "X-GitHub-Api-Version: 2022-11-28" \
   -d "$CHECK_PAYLOAD")
 
+echo "Check response:"
+echo "$CHECK_RESPONSE" | jq .
+
 CHECK_RUN_ID=$(echo "$CHECK_RESPONSE" | jq -r '.id // empty')
 
 if [ -z "$CHECK_RUN_ID" ]; then
