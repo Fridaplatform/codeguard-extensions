@@ -78,6 +78,17 @@ runs:
     - name: Generate Issue Summary
       run: bash ${{ github.action_path }}/scripts/generate-summary.sh
       shell: bash
+    
+    - name: Publish GitHub Check
+      if: github.event_name == 'pull_request'
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+        CODEGUARD_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+      run: |
+        bash ${{ github.action_path }}/scripts/publish-github-check.sh
+      shell: bash
 
     - name: Upload Sonar Results
       uses: actions/upload-artifact@v4
