@@ -68,9 +68,6 @@ jq '
   | map(select(.path != null and .path != ""))
 ' "$ISSUES_FILE" > "$ANNOTATIONS_FILE"
 
-echo "Annotations payload:"
-jq . "$ANNOTATIONS_FILE"
-
 FIRST_ANNOTATIONS=$(jq '.[0:50]' "$ANNOTATIONS_FILE")
 
 CHECK_PAYLOAD=$(jq -n \
@@ -98,12 +95,6 @@ CHECK_RESPONSE=$(curl -sSf -X POST "$API_URL" \
   -H "X-GitHub-Api-Version: 2022-11-28" \
   -d "$CHECK_PAYLOAD")
 
-echo "Check response:"
-echo "$CHECK_RESPONSE" | jq .
-echo "Publishing check for repository: $GITHUB_REPOSITORY"
-echo "Publishing check for sha: $CODEGUARD_HEAD_SHA"
-echo "PR number: ${PR_NUMBER:-not available}"
-
 CHECK_RUN_ID=$(echo "$CHECK_RESPONSE" | jq -r '.id // empty')
 
 if [ -z "$CHECK_RUN_ID" ]; then
@@ -111,8 +102,6 @@ if [ -z "$CHECK_RUN_ID" ]; then
   echo "$CHECK_RESPONSE" | jq .
   exit 1
 fi
-
-echo "Created Check Run ID: $CHECK_RUN_ID"
 
 TOTAL_ANNOTATIONS=$(jq 'length' "$ANNOTATIONS_FILE")
 echo "Publishing annotations: $TOTAL_ANNOTATIONS"

@@ -87,9 +87,6 @@ runs:
         CODEGUARD_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         PR_NUMBER: ${{ github.event.pull_request.number }}
       run: |
-        echo "github.sha=${{ github.sha }}"
-        echo "pr.head.sha=${{ github.event.pull_request.head.sha }}"
-        echo "pr.number=${{ github.event.pull_request.number }}"
         bash ${{ github.action_path }}/scripts/publish-github-check.sh
       shell: bash
 
