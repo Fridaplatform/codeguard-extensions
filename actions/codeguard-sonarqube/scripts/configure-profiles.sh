@@ -41,6 +41,37 @@ map_language_to_sonar_key() {
   esac
 }
 
+normalize_rule_key() {
+  local sonar_lang="$1"
+  local rule="$2"
+
+  if [[ "$rule" == *":"* ]]; then
+    echo "$rule"
+    return
+  fi
+
+  case "$sonar_lang" in
+    js)
+      echo "javascript:$rule"
+      ;;
+    ts)
+      echo "typescript:$rule"
+      ;;
+    py)
+      echo "python:$rule"
+      ;;
+    java)
+      echo "java:$rule"
+      ;;
+    cs)
+      echo "csharpsquid:$rule"
+      ;;
+    *)
+      echo "$rule"
+      ;;
+  esac
+}
+
 for LANG in $LANGUAGES
 do
   SONAR_LANG=$(map_language_to_sonar_key "$LANG")
@@ -75,12 +106,14 @@ do
 
   for (( j=0; j<RULE_COUNT; j++ ))
   do
-    RULE=$(jq -r "$RULES_PATH[\"$LANG\"][$j]" rules-response.json)
+    RAW_RULE=$(jq -r "$RULES_PATH[\"$LANG\"][$j]" rules-response.json)
 
-    if [ -z "$RULE" ] || [ "$RULE" = "null" ]; then
+    if [ -z "$RAW_RULE" ] || [ "$RAW_RULE" = "null" ]; then
       echo "Invalid rule found for $LANG at index $j"
       exit 1
     fi
+
+    RULE=$(normalize_rule_key "$SONAR_LANG" "$RAW_RULE")
 
     echo "Activating rule for $SONAR_LANG: $RULE"
 
