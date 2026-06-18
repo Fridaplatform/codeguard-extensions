@@ -61,7 +61,15 @@ if find "$GITHUB_WORKSPACE" \( -name "*.csproj" -o -name "*.sln" \) | grep -q .;
         /d:sonar.newCode.referenceBranch=\"$NEW_CODE_REFERENCE_BRANCH\" \
         /d:sonar.verbose=true
 
-      dotnet build
+            PROJECT_FILE=\$(find /usr/src \( -name \"*.sln\" -o -name \"*.csproj\" \) | head -n 1)
+
+      if [ -z \"\$PROJECT_FILE\" ]; then
+        echo \"No .sln or .csproj file found\"
+        exit 1
+      fi
+
+      echo \"Building .NET project: \$PROJECT_FILE\"
+      dotnet build \"\$PROJECT_FILE\"
 
       dotnet sonarscanner end \
         /d:sonar.token=\"$SONAR_TOKEN\"
