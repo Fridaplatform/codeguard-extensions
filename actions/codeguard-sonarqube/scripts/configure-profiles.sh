@@ -20,20 +20,29 @@ fi
 
 map_language_to_sonar_key() {
   case "$1" in
-    JavaScript|javascript|JS|js)
-      echo "js"
+    CSharp|csharp|C#|cs)
+      echo "cs"
       ;;
-    TypeScript|typescript|TS|ts)
-      echo "ts"
-      ;;
-    Python|python|PY|py)
-      echo "py"
+    CSS|css)
+      echo "css"
       ;;
     Java|java)
       echo "java"
       ;;
-    CSharp|csharp|C#|cs)
-      echo "cs"
+    JavaScript|javascript|JS|js)
+      echo "js"
+      ;;
+    Python|python|PY|py)
+      echo "py"
+      ;;
+    Ruby|ruby|RB|rb)
+      echo "ruby"
+      ;;
+    Rust|rust|RS|rs)
+      echo "rust"
+      ;;
+    TypeScript|typescript|TS|ts)
+      echo "ts"
       ;;
     *)
       echo "$1"
@@ -51,20 +60,29 @@ normalize_rule_key() {
   fi
 
   case "$sonar_lang" in
-    js)
-      echo "javascript:$rule"
+    cs)
+      echo "csharpsquid:$rule"
       ;;
-    ts)
-      echo "typescript:$rule"
-      ;;
-    py)
-      echo "python:$rule"
+    css)
+      echo "css:$rule"
       ;;
     java)
       echo "java:$rule"
       ;;
-    cs)
-      echo "csharpsquid:$rule"
+    js)
+      echo "javascript:$rule"
+      ;;
+    py)
+      echo "python:$rule"
+      ;;
+    ruby)
+      echo "ruby:$rule"
+      ;;
+    rust)
+      echo "rust:$rule"
+      ;;
+    ts)
+      echo "typescript:$rule"
       ;;
     *)
       echo "$rule"
