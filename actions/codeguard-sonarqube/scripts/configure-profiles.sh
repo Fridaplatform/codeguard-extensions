@@ -18,28 +18,37 @@ if [ -z "$LANGUAGES" ]; then
   exit 1
 fi
 
+map_language_to_sonar_key() {
+  case "$1" in
+    JavaScript|javascript|JS|js)
+      echo "js"
+      ;;
+    TypeScript|typescript|TS|ts)
+      echo "ts"
+      ;;
+    Python|python|PY|py)
+      echo "py"
+      ;;
+    Java|java)
+      echo "java"
+      ;;
+    CSharp|csharp|C#|cs)
+      echo "cs"
+      ;;
+    *)
+      echo "$1"
+      ;;
+  esac
+}
+
 for LANG in $LANGUAGES
 do
-  PROFILE_NAME="CodeGuard ${LANG^^} Profile"
+  SONAR_LANG=$(map_language_to_sonar_key "$LANG")
+  PROFILE_NAME="CodeGuard ${SONAR_LANG^^} Profile"
 
   echo "Processing language: $LANG"
+  echo "SonarQube language key: $SONAR_LANG"
   echo "Creating profile: $PROFILE_NAME"
-
-  curl -s -u "$SONAR_TOKEN:" -X POST \
-    "http://localhost:9000/api/qualityprofiles/create" \
-    -d "language=$LANG" \
-    -d "name=$PROFILE_NAME" || true
-
-  PROFILE_KEY=$(curl -s -u "$SONAR_TOKEN:" \
-    "http://localhost:9000/api/qualityprofiles/search?language=$LANG" | \
-    jq -r --arg NAME "$PROFILE_NAME" '.profiles[] | select(.name==$NAME) | .key')
-
-  if [ -z "$PROFILE_KEY" ] || [ "$PROFILE_KEY" = "null" ]; then
-    echo "Could not find profile key for $LANG"
-    exit 1
-  fi
-
-  echo "Profile key for $LANG: $PROFILE_KEY"
 
   RULE_COUNT=$(jq -r "$RULES_PATH[\"$LANG\"] // [] | length" rules-response.json)
 
@@ -47,6 +56,22 @@ do
     echo "No rules found for language $LANG"
     continue
   fi
+
+  curl -s -u "$SONAR_TOKEN:" -X POST \
+    "http://localhost:9000/api/qualityprofiles/create" \
+    -d "language=$SONAR_LANG" \
+    -d "name=$PROFILE_NAME" || true
+
+  PROFILE_KEY=$(curl -s -u "$SONAR_TOKEN:" \
+    "http://localhost:9000/api/qualityprofiles/search?language=$SONAR_LANG" | \
+    jq -r --arg NAME "$PROFILE_NAME" '.profiles[] | select(.name==$NAME) | .key')
+
+  if [ -z "$PROFILE_KEY" ] || [ "$PROFILE_KEY" = "null" ]; then
+    echo "Could not find profile key for $SONAR_LANG"
+    exit 1
+  fi
+
+  echo "Profile key for $SONAR_LANG: $PROFILE_KEY"
 
   for (( j=0; j<RULE_COUNT; j++ ))
   do
@@ -57,20 +82,20 @@ do
       exit 1
     fi
 
-    echo "Activating rule for $LANG: $RULE"
+    echo "Activating rule for $SONAR_LANG: $RULE"
 
     curl -s -u "$SONAR_TOKEN:" -X POST \
       "http://localhost:9000/api/qualityprofiles/activate_rule" \
       -d "key=$PROFILE_KEY" \
       -d "rule=$RULE" \
-      -d "language=$LANG"
+      -d "language=$SONAR_LANG"
   done
 
-  echo "Setting default profile for $LANG"
+  echo "Setting default profile for $SONAR_LANG"
 
   curl -s -u "$SONAR_TOKEN:" -X POST \
     "http://localhost:9000/api/qualityprofiles/set_default" \
-    -d "language=$LANG" \
+    -d "language=$SONAR_LANG" \
     -d "qualityProfile=$PROFILE_NAME"
 
 done
