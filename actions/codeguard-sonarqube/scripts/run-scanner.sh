@@ -107,7 +107,7 @@ else
         fi
       "
 
-    JAVA_BINARIES="-Dsonar.java.binaries=/usr/src/target/classes,/usr/src/build/classes,/usr/src/build/classes/java/main"
+    JAVA_BINARIES="-Dsonar.java.binaries=/usr/src/target/classes"
   fi
 
   echo "Using generic sonar-scanner-cli..."
