@@ -61,7 +61,7 @@ if find "$GITHUB_WORKSPACE" \( -name "*.csproj" -o -name "*.sln" \) | grep -q .;
         /d:sonar.newCode.referenceBranch=\"$NEW_CODE_REFERENCE_BRANCH\" \
         /d:sonar.verbose=true
 
-            PROJECT_FILE=\$(find /usr/src \( -name \"*.sln\" -o -name \"*.csproj\" \) | head -n 1)
+      PROJECT_FILE=\$(find /usr/src \( -name \"*.sln\" -o -name \"*.csproj\" \) | head -n 1)
 
       if [ -z \"\$PROJECT_FILE\" ]; then
         echo \"No .sln or .csproj file found\"
@@ -76,6 +76,40 @@ if find "$GITHUB_WORKSPACE" \( -name "*.csproj" -o -name "*.sln" \) | grep -q .;
     "
 
 else
+  JAVA_BINARIES=""
+
+  if find "$GITHUB_WORKSPACE" -name "*.java" | grep -q .; then
+    echo "Detected Java files. Preparing Java binaries for analysis..."
+
+    docker run --rm \
+      --platform=linux/amd64 \
+      -u 0:0 \
+      -v "$GITHUB_WORKSPACE:/usr/src" \
+      -w /usr/src \
+      maven:3.9-eclipse-temurin-17 \
+      bash -c "
+        set -e
+
+        if [ -f \"pom.xml\" ]; then
+          echo \"Detected Maven project. Running mvn compile...\"
+          ./mvnw compile || mvn compile
+        elif [ -f \"gradlew\" ]; then
+          echo \"Detected Gradle wrapper. Running ./gradlew classes...\"
+          chmod +x ./gradlew
+          ./gradlew classes
+        elif [ -f \"build.gradle\" ] || [ -f \"build.gradle.kts\" ]; then
+          echo \"Detected Gradle project. Running gradle classes...\"
+          gradle classes
+        else
+          echo \"No Maven or Gradle project detected. Compiling Java files with javac fallback...\"
+          mkdir -p /usr/src/target/classes
+          javac -d /usr/src/target/classes \$(find /usr/src -name \"*.java\")
+        fi
+      "
+
+    JAVA_BINARIES="-Dsonar.java.binaries=/usr/src/target/classes"
+  fi
+
   echo "Using generic sonar-scanner-cli..."
 
   docker run --rm \
@@ -94,7 +128,8 @@ else
     -Dsonar.host.url=http://localhost:9000 \
     -Dsonar.login="$SONAR_TOKEN" \
     -Dsonar.newCode.referenceBranch="$NEW_CODE_REFERENCE_BRANCH" \
-    -Dsonar.verbose=true
+    -Dsonar.verbose=true \
+    $JAVA_BINARIES
 fi
 
 echo "Sonar Scanner finished"
